@@ -12,9 +12,12 @@ void *handle(void* c)
     LOG_INFO("Client accepted");
 
     client_t client = *(client_t *)c;
-    LOG_INFO("Client accepted");
 
-    send_str(client.sockfd, "Hello!");
+    assert(client.sockfd > 0);
+
+    LOG_DEBUG("%s | %d", "bruv", client.sockfd);
+
+    send_str(client.sockfd, "Hello!\n");
 
     pthread_exit(NULL);
 }

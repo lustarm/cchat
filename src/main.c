@@ -45,8 +45,6 @@ int main(void)
         goto cleanup;
     }
 
-    LOG_DEBUG("Binded to port 8000");
-
     if(listen(s.sockfd, 3) != 0)
     {
         LOG_ERROR("Failed to listen on port 8000");
@@ -60,7 +58,12 @@ int main(void)
     while(s.running)
     {
         // Create new heap client
-        client_t *c = malloc(sizeof(client_t*));
+        client_t *c = malloc(sizeof(client_t));
+        if(!c)
+        {
+            LOG_ERROR("Get more ram nerd :)");
+            goto cleanup;
+        }
 
         c->sockfd = accept(s.sockfd, (struct sockaddr*)&s.addr,
                              (socklen_t*)&addrlen);
@@ -73,13 +76,14 @@ int main(void)
         }
 
         pthread_t thread_id;
-        int p_ =  pthread_create(&thread_id, NULL, handle, (void *)&c);
+        int p_ =  pthread_create(&thread_id, NULL, handle, (void *)c);
+        LOG_DEBUG("%d", thread_id);
 
         if (p_ < 0)
         {
             LOG_ERROR("Thread creation failed");
-            free(c);
             close(c->sockfd);
+            free(c);
         }
 
         LOG_DEBUG("Closing thread %d", thread_id);
