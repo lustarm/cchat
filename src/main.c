@@ -18,14 +18,15 @@ int main(void)
 {
     server_t s;
 
-    if((s.sockfd = socket(AF_INET, SOCK_STREAM, 0) == 0))
+    s.sockfd = socket(AF_INET, SOCK_STREAM, 0);
+
+    if(s.sockfd == 0)
     {
         LOG_ERROR("Failed to create socket");
         goto cleanup;
     }
 
-    if(setsockopt(s.sockfd, SOL_SOCKET, SO_REUSEADDR,
-               &(int){1}, sizeof(int)) < 0)
+    if(setsockopt(s.sockfd, SOL_SOCKET, SO_REUSEADDR, (int[]){1}, sizeof(int)) < 0)
     {
         LOG_ERROR("Failed to setup socket options");
         perror("bruh");
@@ -35,7 +36,7 @@ int main(void)
     s.running = true;
 
     s.addr.sin_addr.s_addr = INADDR_ANY;
-    s.addr.sin_port = htonl(8000);
+    s.addr.sin_port = htons(8000);
     s.addr.sin_family = AF_INET;
 
     if(bind(s.sockfd, (struct sockaddr *)&s.addr, sizeof(s.addr)) < 0)
@@ -46,7 +47,7 @@ int main(void)
 
     LOG_DEBUG("Binded to port 8000");
 
-    if(listen(s.sockfd, 3) < 0)
+    if(listen(s.sockfd, 3) != 0)
     {
         LOG_ERROR("Failed to listen on port 8000");
         goto cleanup;
@@ -55,24 +56,26 @@ int main(void)
     LOG_INFO("Listening on port 8000");
 
     int addrlen = sizeof(s.addr);
+
     while(s.running)
     {
         // Create new heap client
         client_t *c = malloc(sizeof(client_t*));
 
-        if((c->sockfd = accept(s.sockfd, (struct sockaddr*)&s.addr,
-                             (socklen_t*)&addrlen)) < 0)
+        c->sockfd = accept(s.sockfd, (struct sockaddr*)&s.addr,
+                             (socklen_t*)&addrlen);
+
+        if (c->sockfd < 0)
         {
             LOG_ERROR("Failed to accept client");
             close(c->sockfd);
             continue;
         }
-        // Cant get passed this
-
-        LOG_DEBUG("Got client starting thread");
 
         pthread_t thread_id;
-        if (pthread_create(&thread_id, NULL, handle, (void *)&c) < 0)
+        int p_ =  pthread_create(&thread_id, NULL, handle, (void *)&c);
+
+        if (p_ < 0)
         {
             LOG_ERROR("Thread creation failed");
             free(c);
