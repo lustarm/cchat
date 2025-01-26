@@ -4,7 +4,7 @@ DIR = build/
 
 CC = gcc
 CCFLAGS = -Wall -Wextra
-CCDEFINES = -DDEBUG
+CCDEFINES = -DDEBUG -DLOG_USE_COLOR
 CCLIB = -lpthread
 
 all : $(OBJS)
