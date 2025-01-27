@@ -29,7 +29,6 @@ int main(void)
     if(setsockopt(s.sockfd, SOL_SOCKET, SO_REUSEADDR, (int[]){1}, sizeof(int)) < 0)
     {
         LOG_ERROR("Failed to setup socket options");
-        perror("bruh");
         goto cleanup;
     }
 
@@ -76,8 +75,8 @@ int main(void)
         }
 
         pthread_t thread_id;
-        int p_ =  pthread_create(&thread_id, NULL, handle, (void *)c);
-        LOG_DEBUG("%d", thread_id);
+        //                                                        :)
+        int p_ =  pthread_create(&thread_id, NULL, handle, (void*)c);
 
         if (p_ < 0)
         {
@@ -85,8 +84,6 @@ int main(void)
             close(c->sockfd);
             free(c);
         }
-
-        LOG_DEBUG("Closing thread %d", thread_id);
     }
 
 cleanup:

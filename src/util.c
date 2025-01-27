@@ -3,17 +3,18 @@
 #include <string.h>
 #include <stdint.h>
 
-void send_str(int fd, char buf[])
-{
-    assert(fd > 0);
+#include "c.h"
 
-    send(fd, buf, strlen(buf), 0);
+void send_str(client_t* c, char buf[])
+{
+    assert(c->sockfd > 0);
+
+    send(c->sockfd, buf, strlen(buf), 0);
 }
 
-void read_str(int fd)
+void read_str(client_t* c)
 {
-    assert(fd > 0);
+    assert(c->sockfd > 0);
 
-    uint8_t buf_[1024];
-    recv(fd, buf_, 1024, 0);
+    recv(c->sockfd, c->buf, 1024, 0);
 }
