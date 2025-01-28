@@ -75,7 +75,6 @@ int main(void)
         }
 
         pthread_t thread_id;
-        //                                                        :)
         int p_ =  pthread_create(&thread_id, NULL, handle, (void*)c);
 
         if (p_ < 0)

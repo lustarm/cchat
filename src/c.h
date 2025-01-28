@@ -5,7 +5,7 @@
 #include <arpa/inet.h>
 
 typedef struct client_t{
-    uint8_t buf[1024];
+    char buf[1024];
     int sockfd;
     bool running;
 } client_t;
