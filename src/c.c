@@ -13,6 +13,21 @@ void trim_newline(char* buf)
     buf[strcspn(buf, "\n")] = 0;
 }
 
+void srw(client_t* c)
+{
+    c->running = true;
+
+    while(c->running)
+    {
+        read_str(c);
+        trim_newline((char*)c->buf);
+
+        LOG_DEBUG("%s", c->buf);
+
+        send_str(c, "-> ");
+    }
+}
+
 void *handle(void* c)
 {
     LOG_INFO("Client accepted");
@@ -23,14 +38,7 @@ void *handle(void* c)
 
     send_str(&client, "-> ");
 
-    while(1)
-    {
-        read_str(&client);
-        client.buf[strcspn((char*)client.buf, "\n")] = 0;
-        LOG_DEBUG("%s", client.buf);
-
-        send_str(&client, "-> ");
-    }
+    srw(&client);
 
 cleanup:
     close(client.sockfd);
