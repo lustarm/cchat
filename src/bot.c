@@ -1,18 +1,17 @@
 #include <pthread.h>
+#include <sys/socket.h>
 #include <unistd.h>
 
 #include "bot.h"
-#include "c.h"
 #include "log.h"
-#include "util.h"
 
-void bot(client_t* c)
+void bot(bot_t* b)
 {
     LOG_INFO("Got bot");
 
-    while(c->running)
+    while(b->running)
     {
-        send_str(c, "ping");
+        send(b->sockfd, "ping", 4, 0);
         sleep(10);
     }
 }

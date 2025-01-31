@@ -14,8 +14,14 @@
 #include "c.h"
 #include "server.h"
 
+const int port = 8000;
+
 int main(void)
 {
+    // ! active user list
+    users users;
+
+    // ! server struct
     server_t s;
 
     s.sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -35,53 +41,46 @@ int main(void)
     s.running = true;
 
     s.addr.sin_addr.s_addr = INADDR_ANY;
-    s.addr.sin_port = htons(8000);
+    s.addr.sin_port = htons(port);
     s.addr.sin_family = AF_INET;
+
+    int addrlen = sizeof(s.addr);
 
     if(bind(s.sockfd, (struct sockaddr *)&s.addr, sizeof(s.addr)) < 0)
     {
-        LOG_ERROR("Failed to bind to port 8000");
+        LOG_ERROR("Failed to bind to port %d", port);
         goto cleanup;
     }
 
     if(listen(s.sockfd, 3) != 0)
     {
-        LOG_ERROR("Failed to listen on port 8000");
+        LOG_ERROR("Failed to listen on port %d", port);
         goto cleanup;
     }
 
     LOG_INFO("Listening on port 8000");
 
-    int addrlen = sizeof(s.addr);
-
     while(s.running)
     {
-        // Create new heap client
-        client_t *c = malloc(sizeof(client_t));
-        if(!c)
-        {
-            LOG_ERROR("Get more ram nerd :)");
-            goto cleanup;
-        }
+        client_t c;
 
-        c->sockfd = accept(s.sockfd, (struct sockaddr*)&s.addr,
+        c.sockfd = accept(s.sockfd, (struct sockaddr*)&s.addr,
                              (socklen_t*)&addrlen);
 
-        if (c->sockfd < 0)
+        if (c.sockfd < 0)
         {
             LOG_ERROR("Failed to accept client");
-            close(c->sockfd);
+            close(c.sockfd);
             continue;
         }
 
         pthread_t thread_id;
-        int p_ =  pthread_create(&thread_id, NULL, handle, (void*)c);
+        int p_ =  pthread_create(&thread_id, NULL, handle, (void*)&c);
 
         if (p_ < 0)
         {
             LOG_ERROR("Thread creation failed");
-            close(c->sockfd);
-            free(c);
+            close(c.sockfd);
         }
     }
 

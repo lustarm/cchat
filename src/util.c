@@ -2,6 +2,8 @@
 #include <sys/socket.h>
 #include <string.h>
 #include <stdint.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 #include "c.h"
 #include "log.h"
@@ -26,6 +28,7 @@ void read_str(client_t* c)
     setsockopt(c->sockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
 
     bytes_read = recv(c->sockfd, c->buf, sizeof(c->buf) - 1, 0);
+    c->len = bytes_read;
 
     if (bytes_read < 0)
     {
@@ -36,7 +39,7 @@ void read_str(client_t* c)
     {
         LOG_INFO("Client disconnected");
         c->running = false;
-        return;
+        free(c);
     }
 }
 

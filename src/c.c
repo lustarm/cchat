@@ -1,6 +1,8 @@
 #include <assert.h>
+#include <sys/socket.h>
 #include <unistd.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include <pthread.h>
 
@@ -26,6 +28,52 @@ void exit_cmd(client_t* c)
     send_str(c, "Exiting...\r\n");
 }
 
+// ! is bot
+bool auth(client_t* c)
+{
+    read_str(c);
+
+    if(!c->running)
+        return false;
+
+    if(c->len == 4
+        && c->buf[0] == 0x00
+        && c->buf[1] == 0x00
+        && c->buf[2] == 0x00)
+    {
+        if(c->buf[3] > 0)
+        {
+            char buf[1];
+            recv(c->sockfd, buf, 1, 0);
+
+            char name[32];
+
+            if(buf[0] > 0)
+            {
+                char src_buf[buf[0]];
+                recv(c->sockfd, src_buf, buf[0], 0);
+
+                memcpy(name, src_buf, sizeof(src_buf));
+            }
+
+            // ! create bot
+            bot_t b =
+                {
+                    .sockfd = c->sockfd,
+                    .addr = c->addr,
+                    .version = buf[3],
+                };
+
+            memcpy(b.name, name, sizeof(name));
+
+            bot(&b);
+        }
+        return true;
+    }
+
+    return false;
+}
+
 void srw(client_t* c)
 {
     commands_t cmds;
@@ -41,15 +89,11 @@ void srw(client_t* c)
     while(c->running)
     {
         read_str(c);
+        if(!c->running)
+            break;
 
-        if(strcmp(c->buf, "\x00\x00\x00\x01"))
-        {
-            bot(c);
-            if(!c->running)
-                continue;
-        }
 
-        LOG_DEBUG("Not bot");
+        LOG_INFO("User client connected: %s");
 
         trim((char*)c->buf);
 
@@ -71,17 +115,28 @@ void srw(client_t* c)
 
     c->running = false;
     close(c->sockfd);
+    free(c);
 }
 
+// ! pass the pointer
 void *handle(void* c)
 {
-    client_t client = *(client_t *)c;
+    client_t *c_ = (client_t *)c;
 
-    assert(client.sockfd > 0);
+    assert(c_->sockfd > 0);
 
-    send_str(&client, "-> ");
+    int r = getpeername(c_->sockfd, (struct sockaddr*)&c_->addr,
+                        &(socklen_t){0});
+    if(r == -1)
+    {
+        LOG_ERROR("Failed to get client information");
+        close(c_->sockfd);
+        pthread_exit(NULL);
+    }
 
-    srw(&client);
+    send_str(c_, "-> ");
+
+    srw(c_);
 
     pthread_exit(NULL);
 }
