@@ -7,7 +7,8 @@
 
 void bot(bot_t* b)
 {
-    LOG_INFO("Got bot");
+    char *p = inet_ntoa(b->addr.sin_addr);
+    LOG_INFO("Bot client connected: %s", p);
 
     while(b->running)
     {

@@ -67,11 +67,14 @@ bool auth(client_t* c)
             memcpy(b.name, name, sizeof(name));
 
             bot(&b);
+
+            return false;
         }
+
         return true;
     }
 
-    return false;
+    return true;
 }
 
 void srw(client_t* c)
@@ -86,14 +89,16 @@ void srw(client_t* c)
 
     c->running = true;
 
+    c->running = auth(c);
+
+    char *p = inet_ntoa(c->addr.sin_addr);
+    LOG_INFO("User client connected: %s", p);
+
     while(c->running)
     {
         read_str(c);
         if(!c->running)
             break;
-
-
-        LOG_INFO("User client connected: %s");
 
         trim((char*)c->buf);
 
@@ -115,7 +120,6 @@ void srw(client_t* c)
 
     c->running = false;
     close(c->sockfd);
-    free(c);
 }
 
 // ! pass the pointer

@@ -2,7 +2,6 @@
 #include <sys/socket.h>
 #include <string.h>
 #include <stdint.h>
-#include <stdlib.h>
 #include <unistd.h>
 
 #include "c.h"
@@ -39,7 +38,6 @@ void read_str(client_t* c)
     {
         LOG_INFO("Client disconnected");
         c->running = false;
-        free(c);
     }
 }
 
