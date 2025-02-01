@@ -41,20 +41,11 @@ bool auth(client_t* c)
         && c->buf[1] == 0x00
         && c->buf[2] == 0x00)
     {
+        // ! versioning
         if(c->buf[3] > 0)
         {
             char buf[1];
             recv(c->sockfd, buf, 1, 0);
-
-            char name[32];
-
-            if(buf[0] > 0)
-            {
-                char src_buf[buf[0]];
-                recv(c->sockfd, src_buf, buf[0], 0);
-
-                memcpy(name, src_buf, sizeof(src_buf));
-            }
 
             // ! create bot
             bot_t b =
@@ -64,7 +55,7 @@ bool auth(client_t* c)
                     .version = buf[3],
                 };
 
-            memcpy(b.name, name, sizeof(name));
+            memcpy(b.name, "test", 4);
 
             bot(&b);
 
